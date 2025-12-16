@@ -77,3 +77,22 @@ You need to specify the folder of decoded texts. This folder should contain the 
 cd scripts
 python eval_DiffuVQA.py --folder ../{your-path-to-outputs} --mbr
 ```
+
+## Citation
+If this repository is useful for your research, please cite:
+```bibtex
+@article{liu2026redefiningmedvqa_diffusion,
+  title     = {Redefining medical visual question answering using conditional generative diffusion models},
+  author    = {Liu, Bing and Liu, Lijun and Yang, Xiaobing and Peng, Wei and Liu, Li},
+  journal   = {Biomedical Signal Processing and Control},
+  year      = {2026},
+  month     = {Jan},
+  volume    = {111},
+  pages     = {108222},
+  issn      = {1746-8094},
+  doi       = {10.1016/j.bspc.2025.108222},
+  url       = {https://www.sciencedirect.com/science/article/pii/S1746809425007335},
+  publisher = {Elsevier},
+  keywords  = {Medical visual question answering; Diffusion model; Conditional information embedding; Reasoning chain}
+}
+```
