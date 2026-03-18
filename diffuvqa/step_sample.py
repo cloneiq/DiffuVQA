@@ -62,10 +62,6 @@ class UniformSampler(ScheduleSampler):
 class FixSampler(ScheduleSampler):
     def __init__(self, diffusion):
         self.diffusion = diffusion
-
-        ###############################################################
-        ### You can custome your own sampling weight of steps here. ###
-        ###############################################################
         self._weights = np.concatenate([np.ones([diffusion.num_timesteps//2]), np.zeros([diffusion.num_timesteps//2]) + 0.5])
 
     def weights(self):
