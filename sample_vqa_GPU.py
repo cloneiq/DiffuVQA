@@ -179,7 +179,7 @@ def main():
         # print("input_ids_mask.shape: ", input_ids_mask.shape)
 
         # x_start_mean, _ = model.get_ddpm_inputs_mask(image, cond)
-        fuse_feats, _ = model.get_ddpm_input(image, cond)  # 用于将采样的样本填充到不为0的位置
+        fuse_feats, _ = model.get_ddpm_input(image, cond)  
         f = torch.cat([fuse_feats, fuse_feats], dim=1)
         print(fuse_feats.shape)
         x_start = torch.cat([fuse_feats, input_emb], dim=1)
@@ -193,7 +193,7 @@ def main():
             print("noising f")
             noise = alphas_bar_sqrt[num_steps - 1] * f + one_minus_alphas_bar_sqrt[num_steps - 1] * noise
 
-        x_noised = th.where(input_ids_mask == 0, x_start, noise)  # 模型的输入，相当于训练时的x_t
+        x_noised = th.where(input_ids_mask == 0, x_start, noise)  
 
         model_kwargs = {}
 
@@ -225,7 +225,7 @@ def main():
             gap=step_gap
         )
 
-        sample = samples[-1]  # 最后一个采样步骤的输出，模型的输出（预测x0）
+        sample = samples[-1]  
         #
         a_shape = sample.size(1) // 2
         sample = sample[:, a_shape:, :]
