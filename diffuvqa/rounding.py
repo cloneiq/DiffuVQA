@@ -46,13 +46,11 @@ def rounding_func(text_emb_lst, model, tokenizer, emb_scale_factor=1.0):
                                 text_emb.to(model_emb.device), dist=dist)
     
         # decoded_out_lst.append(tokenizer.decode(indices[0]))
-        decoded_out_lst.append(tokenizer.decode_token(indices[0])) # 原版
+        decoded_out_lst.append(tokenizer.decode_token(indices[0])) 
         
     return decoded_out_lst
 
 def compute_logp(args, model, x, input_ids):
-    # input_ids: bsz, seqlen,目标输出（token）的索引
-    # x: bsz, seqlen, dim
     word_emb = model.weight
     sigma = 0.1
     if args.model_arch == '1d-unet':
