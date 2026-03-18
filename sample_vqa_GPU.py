@@ -83,19 +83,15 @@ def main():
     betas =  betas_for_alpha_bar(num_steps, lambda t: 1 - np.sqrt(t + 0.0001),)
     alphas = 1 - betas  # α = 1 - β
     alphas = torch.from_numpy(alphas)
-    # 计算所有步骤的alpha累乘结果
-    alphas_prod = torch.cumprod(alphas, 0)  # 如果 alphas 是 [a1, a2, a3]，那么 alphas_prod 将会是 [a1, a1*a2, a1*a2*a3]
-    # 计算前一步的alpha累乘结果，用于后续计算，初始值设为1
-    alphas_prod_p = torch.cat([torch.tensor([1]).float(), alphas_prod[:-1]],
-                              0)  # 如果 alphas_prod 是 [a1, a1*a2, a1*a2*a3]，那么 alphas_prod_p 将会是 [1, a1, a1*a2]
-    # 计算alphas_prod的平方根，用于后续计算
+    
+    alphas_prod = torch.cumprod(alphas, 0) 
+    alphas_prod_p = torch.cat([torch.tensor([1]).float(), alphas_prod[:-1]],0) 
     alphas_bar_sqrt = torch.sqrt(alphas_prod)
-    # 计算1减去alphas_prod的自然对数，用于后续计算
+  
     one_minus_alphas_bar_log = torch.log(1 - alphas_prod)
-    # 计算1减去alphas_prod的平方根，用于后续计算
+    
     one_minus_alphas_bar_sqrt = torch.sqrt(1 - alphas_prod)
 
-    # 断言所有计算出的张量形状相同，确保数据一致性
     assert alphas.shape == alphas_prod.shape == alphas_prod_p.shape == \
            alphas_bar_sqrt.shape == one_minus_alphas_bar_log.shape == \
            one_minus_alphas_bar_sqrt.shape
