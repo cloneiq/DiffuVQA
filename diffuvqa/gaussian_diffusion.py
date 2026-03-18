@@ -592,6 +592,48 @@ class GaussianDiffusion:
 
         return {'pred_xprev': pred_prev, 'pred_xstart': pred_xstart}
 
+
+    def _compute_regularization_loss(self, pred_answer, target_answer, input_ids_a, t, get_logits, reg_loss_type='sim'):
+        """
+        Compute one additional regularization term from the paper.
+        Only one regularizer is enabled at a time via if/elif/elif.
+
+        :param pred_answer: predicted answer embeddings, shape [B, L, D].
+        :param target_answer: target answer embeddings, shape [B, L, D].
+        :param input_ids_a: target answer token ids, shape [B, L].
+        :param t: current diffusion timesteps, shape [B].
+        :param get_logits: function that maps embeddings to token logits.
+        :param reg_loss_type: one of {'sim', 'struct', 'len'}.
+        :return: weighted regularization loss, shape [B].
+        """
+        time_weight = _extract_into_tensor(1.0 - self.alphas_cumprod, t, (t.shape[0], 1, 1)).view(-1)
+
+        if reg_loss_type == 'sim':
+            lambda_reg = 0.1
+            pred_mean = pred_answer.mean(dim=1)
+            target_mean = target_answer.mean(dim=1)
+            reg_loss = 1 - F.cosine_similarity(pred_mean, target_mean, dim=-1)
+        elif reg_loss_type == 'struct':
+            lambda_reg = 0.05
+            tau = 0.1
+            pred_attn = th.matmul(pred_answer, pred_answer.transpose(-1, -2)) / tau
+            target_attn = th.matmul(target_answer, target_answer.transpose(-1, -2)) / tau
+            pred_log_prob = F.log_softmax(pred_attn, dim=-1)
+            target_prob = F.softmax(target_attn, dim=-1)
+            reg_loss = F.kl_div(pred_log_prob, target_prob, reduction='none').sum(dim=-1).mean(dim=-1)
+        elif reg_loss_type == 'len':
+            lambda_reg = 0.03
+            pred_ids = get_logits(pred_answer).argmax(dim=-1)
+            pred_len = pred_ids.ne(0).float().sum(dim=-1)
+            target_len = input_ids_a.ne(0).float().sum(dim=-1)
+            active_mask = (t < (self.num_timesteps // 2)).float()
+            reg_loss = ((pred_len - target_len) ** 2) * active_mask
+        else:
+            lambda_reg = 0.0
+            reg_loss = th.zeros_like(t, dtype=pred_answer.dtype)
+
+        return lambda_reg * time_weight * reg_loss
+
     def training_losses_seq2seq(self, model, image, t, model_kwargs=None, noise=None):
         """
         Compute training losses for a single timestep.
@@ -608,6 +650,7 @@ class GaussianDiffusion:
         # x_start_fix = x_start # save the orignal x_0
         # x_start_mean, _ = model.model.module.get_ddpm_inputs_mask(image, model_kwargs)
         assert 'input_ids' in model_kwargs
+        reg_loss_type = model_kwargs.pop('reg_loss_type', 'sim')
         input_ids_x = model_kwargs.pop('input_ids').to(t.device)
         input_ids_a = model_kwargs['input_a_id'].to(t.device)
         # x_start_arr = model.model.module.get_embeds(input_ids_x)
@@ -670,7 +713,17 @@ class GaussianDiffusion:
         terms["nll"] = self._token_discrete_loss(model_out_x_start, get_logits, input_ids_a)  # x_0->model_out_x_start
         # assert (model.lm_head.weight == model.word_embedding.weight).all()
 
-        terms["loss"] = terms["mse"] + tT_loss + pre_answer_loss + terms["nll"] + decoder_nll
+        target_answer = x_start_mean.detach()
+        terms["reg"] = self._compute_regularization_loss(
+            pred_answer=model_out_x_start,
+            target_answer=target_answer,
+            input_ids_a=input_ids_a,
+            t=t,
+            get_logits=get_logits,
+            reg_loss_type=reg_loss_type,
+        )
+
+        terms["loss"] = terms["mse"] + tT_loss + pre_answer_loss + terms["nll"] + decoder_nll + terms["reg"]
 
         return terms
 
