@@ -6,6 +6,7 @@ Medical Visual Question Answering (Med-VQA) aims to provide answers to clinical 
 width = "700" height = "250" 
 alt="1" align=center />
 </div>
+
 The paper has been published in **Biomedical Signal Processing and Control**, Volume 111, 2026, Article 108222.
 
 ## Preparation
