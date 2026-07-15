@@ -6,7 +6,7 @@ Medical Visual Question Answering (Med-VQA) aims to provide answers to clinical 
 width = "700" height = "250" 
 alt="1" align=center />
 </div>
-The paper has been published in Biomedical Signal Processing and Control.
+The paper has been published in **Biomedical Signal Processing and Control**, Volume 111, 2026, Article 108222.
 
 ## Preparation
 ```bash
@@ -96,3 +96,9 @@ If this repository is useful for your research, please cite:
   keywords  = {Medical visual question answering; Diffusion model; Conditional information embedding; Reasoning chain}
 }
 ```
+
+## Contact
+
+Bing Liu, Kunming University of Science and Technology Kunming, Yunnan CHINA, 2717382435@qq.com
+
+Lijun Liu, Associate Professor (Ph.D.), Kunming University of Science and Technology Kunming, Yunnan CHINA, cloneiq@kust.edu.cn
